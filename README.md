@@ -10,6 +10,11 @@
 
 ## 更新说明
 
+### V1.1
+1. 修改 Pushdeer 为正式版 URL
+2. 更新 Pushdeer 使用教程地址
+
+### V1.0
 1. 增加登陆勾选用户协议逻辑
 2. 增加通过PushDeer发送简略提示的选项
 
@@ -67,7 +72,7 @@
 
 - **【非必填】【PushDeer的pushKey】：**
 
-  参考[方糖公众号文章](https://mp.weixin.qq.com/s/lgg928BzeWQViXiWYmtmgA)进行配置
+  参考[方糖公众号文章](https://mp.weixin.qq.com/s/dSDpO3c0kWNfWakexfh6Tw)进行配置
 
 - **【非必填】【server酱Url】：**
 
