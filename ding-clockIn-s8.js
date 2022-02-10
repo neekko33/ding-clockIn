@@ -2,6 +2,7 @@ importClass(android.provider.Settings);
 importClass(android.content.Context);
 /* --------------------------------------预配置开始----------------------------------- */
 const {
+	smmsToken,
 	pushKey,
 	serverUrl,
 	companyName,
@@ -357,39 +358,44 @@ function loginIfNeed() {
  * 上传截图至SMMS
  */
 function uploadImg() {
-	toastLog('上传打卡截图...');
-	const url = 'https://sm.ms/api/v2/upload';
-	const fileName = '/sdcard/' + new Date().getTime() + '.png';
-	captureScreen(fileName);
-
-	let res = http.postMultipart(
-		url,
-		{
-			smfile: open(fileName),
-		},
-		{
-			headers: {
-				'User-Agent':
-					'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36',
-			},
-		}
-	);
-
-	let jsonObj = JSON.parse(res.body.string());
-	let isSuc = jsonObj.success;
-	let imgUrl = jsonObj.data.url;
-	let delUrl = jsonObj.data.delete;
-	if (isSuc) {
-		setLog(
-			'手机截图删除结果：' + (files.remove(fileName) ? '成功' : '失败'),
-			true
-		);
-		setLog('图床图片删除链接：', true);
-		setLog(delUrl, true);
-		setLog('打卡结果截图', true);
-		myLog += '![logo](' + imgUrl + ')';
+	if (!smmsToken) {
+		setLog('未填写SMMS Token，不进行图片上传...');
 	} else {
-		setLog('图片上传失败~', true);
+		toastLog('上传打卡截图...');
+		const url = 'https://sm.ms/api/v2/upload';
+		const fileName = '/sdcard/' + new Date().getTime() + '.png';
+		captureScreen(fileName);
+
+		let res = http.postMultipart(
+			url,
+			{
+				smfile: open(fileName),
+			},
+			{
+				headers: {
+					'User-Agent':
+						'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36',
+					Authorization: smmsToken,
+				},
+			}
+		);
+
+		let jsonObj = JSON.parse(res.body.string());
+		let isSuc = jsonObj.success;
+		let imgUrl = jsonObj.data.url;
+		let delUrl = jsonObj.data.delete;
+		if (isSuc) {
+			setLog(
+				'手机截图删除结果：' + (files.remove(fileName) ? '成功' : '失败'),
+				true
+			);
+			setLog('图床图片删除链接：', true);
+			setLog(delUrl, true);
+			setLog('打卡结果截图', true);
+			myLog += '![logo](' + imgUrl + ')';
+		} else {
+			setLog('图片上传失败~', true);
+		}
 	}
 }
 

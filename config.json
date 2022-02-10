@@ -68,8 +68,14 @@
     "placeholder": "若填写，则通过OCR识别打卡结果中是否包含打卡成功字样"
   },
   {
+    "label": "[非必填] SMMS图床Token",
+    "name": "smmsToken",
+    "placeholder": "若填写，则在Server酱通知中显示打卡图片"
+  },
+  {
     "label": "[非必填]PushDeer的pushkey",
-    "name": "pushKey"
+    "name": "pushKey",
+    "placeholder": "若填写，则发送Pushdeer通知"
   },
   {
     "label": "[非必填]server酱的SCKEY，注意区分旧版和Turbo版",
