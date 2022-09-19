@@ -79,10 +79,6 @@
 
   填写百度OCR获取token的url，一般不用管这个
 
-- ~~ **【非必填】 SMMS图床Token：** ~~
-
-  ~~ SMMS图床上传需要注册用户，可在[官网](https://sm.ms/)注册账号，token获取方式参考[API文档](https://doc.sm.ms/#api-User-Get_Token) ~~
-
 - **【非必填】【PushDeer的pushKey】：**
 
   参考[方糖公众号文章](https://mp.weixin.qq.com/s/dSDpO3c0kWNfWakexfh6Tw)进行配置
