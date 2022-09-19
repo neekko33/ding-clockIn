@@ -10,6 +10,10 @@
 
 ## 更新说明
 
+### V1.3
+1. 修改 SMMS 图床为 imgbb 图床 (SMMS图床无法正常连接)
+2. imgbb 目前测试不需要登陆，删除图床配置选项
+
 ### V1.2
 1. 修改 SMMS 图床上传API
 2. 增加图床使用说明
@@ -74,9 +78,9 @@
 
   填写百度OCR获取token的url，一般不用管这个
 
-- **【非必填】 SMMS图床Token：**
+- ~~ **【非必填】 SMMS图床Token：** ~~
 
-  SMMS图床上传需要注册用户，可在[官网](https://sm.ms/)注册账号，token获取方式参考[API文档](https://doc.sm.ms/#api-User-Get_Token)
+  ~~ SMMS图床上传需要注册用户，可在[官网](https://sm.ms/)注册账号，token获取方式参考[API文档](https://doc.sm.ms/#api-User-Get_Token) ~~
 
 - **【非必填】【PushDeer的pushKey】：**
 

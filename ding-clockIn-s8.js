@@ -1,8 +1,7 @@
-importClass(android.provider.Settings);
-importClass(android.content.Context);
+importClass(android.provider.Settings)
+importClass(android.content.Context)
 /* --------------------------------------预配置开始----------------------------------- */
 const {
-	smmsToken,
 	pushKey,
 	serverUrl,
 	companyName,
@@ -18,94 +17,94 @@ const {
 	jumpRules,
 	leaveEarly,
 	punchLater,
-} = hamibot.env;
-var myLog = '';
-var myStr = '';
-var simpleLog = '';
-const w = device.width;
-const h = device.height;
-const maxSwipeNum = 50;
-const holidayUrl = 'http://timor.tech/api/holiday/year?week=Y';
-const holidayCfgName = 'HOLIDAY_ARRAY_' + new Date().getFullYear() + '_';
+} = hamibot.env
+var myLog = ''
+var myStr = ''
+var simpleLog = ''
+const w = device.width
+const h = device.height
+const maxSwipeNum = 50
+const holidayUrl = 'http://timor.tech/api/holiday/year?week=Y'
+const holidayCfgName = 'HOLIDAY_ARRAY_' + new Date().getFullYear() + '_'
 // 息屏时间/2
-const loopTime = getLoopTime();
-var myCfg = storages.create('DingDing-SayNo');
+const loopTime = getLoopTime()
+var myCfg = storages.create('DingDing-SayNo')
 
 /**
  * 防止息屏
  */
 threads.start(function () {
 	setInterval(() => {
-		toast('防止锁屏');
-	}, loopTime);
-});
+		toast('防止锁屏')
+	}, loopTime)
+})
 
 if (!morTime) {
-	toastLog('请设置上班打卡时间范围');
-	exitShell();
+	toastLog('请设置上班打卡时间范围')
+	exitShell()
 }
 
 if (!nightTime) {
-	toastLog('请设置下班打卡时间范围');
-	exitShell();
+	toastLog('请设置下班打卡时间范围')
+	exitShell()
 }
 
 if (!maxTime) {
-	toastLog('请设置打卡随机时间');
-	exitShell();
+	toastLog('请设置打卡随机时间')
+	exitShell()
 }
 
 if (!waitTime) {
-	toastLog('请设置等待时间');
-	exitShell();
+	toastLog('请设置等待时间')
+	exitShell()
 }
 //上班打卡时间段
-var goToWorkTime = morTime.split(';');
+var goToWorkTime = morTime.split(';')
 
 //下班打卡时间段
-var afterWorkTime = nightTime.split(';');
+var afterWorkTime = nightTime.split(';')
 
 // 设置当年的节假日
 if (
 	('rule_1' == jumpRules || 'rule_3' == jumpRules) &&
 	!myCfg.contains(holidayCfgName)
 ) {
-	setholiday();
+	setholiday()
 }
 /* --------------------------------------预配置结束----------------------------------- */
 
-startProgram();
+startProgram()
 
 /**
  * 脚本流程
  */
 function startProgram() {
-	unlockIfNeed();
-	sleep(waitTime * 1000);
+	unlockIfNeed()
+	sleep(waitTime * 1000)
 	// 1.检查权限
-	checkMyPermission();
+	checkMyPermission()
 	// 2.进入页面
-	goToPage();
-	handleOrgDialog();
+	goToPage()
+	handleOrgDialog()
 	// 3.获取操作并执
-	var randTime = random(10, maxTime);
-	toast(randTime + 's后开始打卡');
-	setLog(randTime + 's后开始打卡');
-	sleep(randTime * 1000);
-	punchTheClock();
+	var randTime = random(10, maxTime)
+	toast(randTime + 's后开始打卡')
+	setLog(randTime + 's后开始打卡')
+	sleep(randTime * 1000)
+	punchTheClock()
 	// 4.获取结果
-	checkPunch();
-	getReslt();
+	checkPunch()
+	getReslt()
 	// 5.返回给用户
-	exitShell();
+	exitShell()
 }
 
 /**
  * 手机是否锁屏
  */
 function isLocked() {
-	var km = context.getSystemService(Context.KEYGUARD_SERVICE);
-	return km.isKeyguardLocked() && km.isKeyguardSecure();
+	var km = context.getSystemService(Context.KEYGUARD_SERVICE)
+	return km.isKeyguardLocked() && km.isKeyguardSecure()
 }
 
 /**
@@ -115,39 +114,39 @@ function getLoopTime() {
 	let lockTime = Settings.System.getInt(
 		context.getContentResolver(),
 		Settings.System.SCREEN_OFF_TIMEOUT
-	);
+	)
 	if (null == lockTime || '' == lockTime || 'undefined' == lockTime) {
-		return 8000;
+		return 8000
 	}
-	return lockTime / 2;
+	return lockTime / 2
 }
 
 /**
  * 获取今年的所有节假日
  */
 function setholiday() {
-	setLog('获取当年节假日数据');
-	let res = http.get(holidayUrl, {});
-	let jsonObj = JSON.parse(res.body.string());
+	setLog('获取当年节假日数据')
+	let res = http.get(holidayUrl, {})
+	let jsonObj = JSON.parse(res.body.string())
 	if (jsonObj.code == -1) {
-		setLog('获取节假日数据失败');
-		exitShell();
+		setLog('获取节假日数据失败')
+		exitShell()
 	}
 
-	let holiday = jsonObj.holiday;
-	let holidayArray = [];
+	let holiday = jsonObj.holiday
+	let holidayArray = []
 	if (holiday) {
 		for (let key in holiday) {
 			if (holiday[key].holiday) {
-				holidayArray.push(holiday[key].date);
+				holidayArray.push(holiday[key].date)
 			}
 		}
-		myCfg.put(holidayCfgName, holidayArray);
+		myCfg.put(holidayCfgName, holidayArray)
 	} else {
 		setLog(
 			'节假日数据接口变更，请联系开发者，并设置节假日规则为请选择或跳过周末'
-		);
-		exitShell();
+		)
+		exitShell()
 	}
 }
 
@@ -155,21 +154,21 @@ function setholiday() {
  * 解锁屏幕
  */
 function unlockIfNeed() {
-	device.wakeUpIfNeeded();
+	device.wakeUpIfNeeded()
 	if (!isLocked()) {
-		setLog('无需解锁');
-		swipeUp();
-		return;
+		setLog('无需解锁')
+		swipeUp()
+		return
 	}
-	swipeUp();
-	sleep(1000);
+	swipeUp()
+	sleep(1000)
 	if (pwd) {
-		enterPwd();
+		enterPwd()
 	} else {
-		setLog('请配置手机解锁密码');
-		exitShell();
+		setLog('请配置手机解锁密码')
+		exitShell()
 	}
-	setLog('解锁完毕');
+	setLog('解锁完毕')
 }
 
 /**
@@ -177,21 +176,21 @@ function unlockIfNeed() {
  */
 function swipeUp() {
 	if (myCfg.contains('CFG_SWIPE_TIME_')) {
-		const CFG_SWIPE_TIME_ = myCfg.get('CFG_SWIPE_TIME_');
-		gesture(CFG_SWIPE_TIME_, [w / 2, h * 0.9], [w / 2, h * 0.1]);
-		sleep(1000);
+		const CFG_SWIPE_TIME_ = myCfg.get('CFG_SWIPE_TIME_')
+		gesture(CFG_SWIPE_TIME_, [w / 2, h * 0.9], [w / 2, h * 0.1])
+		sleep(1000)
 		if (swipeUpSuc()) {
-			return;
+			return
 		}
 	}
 
 	if (swipeUpMethodOne()) {
-		log('方式一上滑成功');
+		log('方式一上滑成功')
 	} else if (swipeUpMethodTwo()) {
-		log('方式二上滑成功');
+		log('方式二上滑成功')
 	} else {
-		setLog('当前程序无法上滑至桌面或密码输入界面');
-		exitShell();
+		setLog('当前程序无法上滑至桌面或密码输入界面')
+		exitShell()
 	}
 }
 
@@ -199,67 +198,67 @@ function swipeUp() {
  * 上滑方式一
  */
 function swipeUpMethodOne() {
-	var xyArr = [220];
-	var x0 = w / 2;
-	var y0 = (h / 4) * 3;
-	var angle = 0;
-	var x = 0;
-	var y = 0;
+	var xyArr = [220]
+	var x0 = w / 2
+	var y0 = (h / 4) * 3
+	var angle = 0
+	var x = 0
+	var y = 0
 	for (let i = 0; i < 30; i++) {
-		y = x * tan(angle);
+		y = x * tan(angle)
 		if (y0 - y < 0) {
-			break;
+			break
 		}
-		var xy = [x0 + x, y0 - y];
-		xyArr.push(xy);
-		x += 5;
-		angle += 3;
+		var xy = [x0 + x, y0 - y]
+		xyArr.push(xy)
+		x += 5
+		angle += 3
 	}
-	gesture.apply(null, xyArr);
+	gesture.apply(null, xyArr)
 
 	function tan(angle) {
-		return Math.tan((angle * Math.PI) / 180);
+		return Math.tan((angle * Math.PI) / 180)
 	}
 
-	return swipeUpSuc();
+	return swipeUpSuc()
 }
 
 /**
  * 上滑方式二
  */
 function swipeUpMethodTwo() {
-	let swipeTime = 0;
-	let addTime = 20;
+	let swipeTime = 0
+	let addTime = 20
 	for (let i = 0; i < maxSwipeNum; i++) {
-		swipeTime += addTime;
-		gesture(swipeTime, [w / 2, h * 0.9], [w / 2, h * 0.1]);
-		sleep(1000);
+		swipeTime += addTime
+		gesture(swipeTime, [w / 2, h * 0.9], [w / 2, h * 0.1])
+		sleep(1000)
 		if (swipeUpSuc()) {
-			myCfg.put('CFG_SWIPE_TIME_', swipeTime);
-			return true;
+			myCfg.put('CFG_SWIPE_TIME_', swipeTime)
+			return true
 		}
 	}
-	return false;
+	return false
 }
 
 /**
  * 判断上滑结果
  */
 function swipeUpSuc() {
-	let km = context.getSystemService(Context.KEYGUARD_SERVICE);
+	let km = context.getSystemService(Context.KEYGUARD_SERVICE)
 	// 判断是否在锁屏界面
 	if (!km.inKeyguardRestrictedInputMode()) {
-		return true;
+		return true
 	}
 	for (let i = 0; i < 10; i++) {
 		if (
 			!text(i).clickable(true).exists() &&
 			!desc(i).clickable(true).exists()
 		) {
-			return false;
+			return false
 		}
 	}
-	return true;
+	return true
 }
 
 /**
@@ -269,15 +268,15 @@ function enterPwd() {
 	//点击
 	if (text(0).clickable(true).exists()) {
 		for (var i = 0; i < pwd.length; i++) {
-			a = pwd.charAt(i);
-			sleep(200);
-			text(a).clickable(true).findOne().click();
+			a = pwd.charAt(i)
+			sleep(200)
+			text(a).clickable(true).findOne().click()
 		}
 	} else {
 		for (var i = 0; i < pwd.length; i++) {
-			a = pwd.charAt(i);
-			sleep(200);
-			desc(a).clickable(true).findOne().click();
+			a = pwd.charAt(i)
+			sleep(200)
+			desc(a).clickable(true).findOne().click()
 		}
 	}
 }
@@ -287,9 +286,9 @@ function enterPwd() {
  */
 function loginIfNeed() {
 	if (text('密码登录').clickable(true).exists()) {
-		text('密码登录').clickable(true).findOne().click();
+		text('密码登录').clickable(true).findOne().click()
 	} else if (desc('密码登录').clickable(true).exists()) {
-		desc('密码登录').clickable(true).findOne().click();
+		desc('密码登录').clickable(true).findOne().click()
 	}
 
 	if (
@@ -297,60 +296,60 @@ function loginIfNeed() {
 		desc('忘记密码').clickable(true).exists()
 	) {
 		if (!account || !accountPwd) {
-			setLog('当前未登录，请输入钉钉登录账号及密码');
-			exitShell();
+			setLog('当前未登录，请输入钉钉登录账号及密码')
+			exitShell()
 		}
 
 		if (id('et_phone_input').exists() && id('et_pwd_login').exists()) {
-			id('et_phone_input').findOne().setText(account);
-			sleep(1000);
-			id('et_pwd_login').findOne().setText(accountPwd);
-			log('使用ID选择输入');
+			id('et_phone_input').findOne().setText(account)
+			sleep(1000)
+			id('et_pwd_login').findOne().setText(accountPwd)
+			log('使用ID选择输入')
 		} else {
-			setText(0, account);
-			sleep(1000);
-			setText(1, accountPwd);
-			log('使用setText输入');
+			setText(0, account)
+			sleep(1000)
+			setText(1, accountPwd)
+			log('使用setText输入')
 		}
 		// 勾选协议
-		log('勾选协议');
+		log('勾选协议')
 		if (id('cb_privacy').exists()) {
-			id('cb_privacy').findOne().click();
-			log('勾选协议成功');
+			id('cb_privacy').findOne().click()
+			log('勾选协议成功')
 		}
 		// Android版本低于7.0
 		if (device.sdkInt < 24) {
-			let pageUIObj = [];
+			let pageUIObj = []
 			if (id('btn_next').clickable(true).exists()) {
-				id('btn_next').clickable(true).findOne().click();
+				id('btn_next').clickable(true).findOne().click()
 			} else {
 				if (text('忘记密码').exists()) {
-					pageUIObj = text('忘记密码').findOne().parent().parent().children();
+					pageUIObj = text('忘记密码').findOne().parent().parent().children()
 				} else {
-					pageUIObj = desc('忘记密码').findOne().parent().parent().children();
+					pageUIObj = desc('忘记密码').findOne().parent().parent().children()
 				}
 				if (pageUIObj.length == 5) {
-					let loginBtn = pageUIObj[3].children()[0];
-					loginBtn.click();
+					let loginBtn = pageUIObj[3].children()[0]
+					loginBtn.click()
 				} else {
-					setLog('找不到登录按钮，请联系脚本作者!');
+					setLog('找不到登录按钮，请联系脚本作者!')
 				}
 			}
 		} else {
 			//获取登录按钮坐标
 			if (text('忘记密码').clickable(true).exists()) {
 				var loginBtnY =
-					text('忘记密码').clickable(true).findOne().bounds().top - 10;
+					text('忘记密码').clickable(true).findOne().bounds().top - 10
 			} else {
 				var loginBtnY =
-					desc('忘记密码').clickable(true).findOne().bounds().top - 10;
+					desc('忘记密码').clickable(true).findOne().bounds().top - 10
 			}
-			click(w / 2, loginBtnY);
+			click(w / 2, loginBtnY)
 		}
 
-		setLog('登录成功');
+		setLog('登录成功')
 	} else {
-		setLog('已登录');
+		setLog('已登录')
 	}
 }
 
@@ -358,44 +357,42 @@ function loginIfNeed() {
  * 上传截图至SMMS
  */
 function uploadImg() {
-	if (!smmsToken) {
-		setLog('未填写SMMS Token，不进行图片上传...');
-	} else {
-		toastLog('上传打卡截图...');
-		const url = 'https://sm.ms/api/v2/upload';
-		const fileName = '/sdcard/' + new Date().getTime() + '.png';
-		captureScreen(fileName);
-
+	toastLog('上传打卡截图...默认15分钟后删除')
+	const url = 'https://imgbb.com/json'
+	const fileName = '/sdcard/' + new Date().getTime() + '.png'
+	captureScreen(fileName)
+	try {
 		let res = http.postMultipart(
 			url,
 			{
-				smfile: open(fileName),
+				source: open(fileName),
+				type: 'file',
+				action: 'upload',
+				auth_token: '98721cfdde74a8c14a5347ce245b305a0c4e0ae1',
+				expiration: 'PT5M',
 			},
 			{
 				headers: {
 					'User-Agent':
 						'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36',
-					Authorization: smmsToken,
 				},
 			}
-		);
-
-		let jsonObj = JSON.parse(res.body.string());
-		let isSuc = jsonObj.success;
-		let imgUrl = jsonObj.data.url;
-		let delUrl = jsonObj.data.delete;
+		)
+		let jsonObj = JSON.parse(res.body.string())
+		let isSuc = jsonObj.success.code == 200
+		let imgUrl = jsonObj.image.url
 		if (isSuc) {
 			setLog(
 				'手机截图删除结果：' + (files.remove(fileName) ? '成功' : '失败'),
 				true
-			);
-			setLog('图床图片删除链接：', true);
-			setLog(delUrl, true);
-			setLog('打卡结果截图', true);
-			myLog += '![logo](' + imgUrl + ')';
+			)
+			setLog('打卡结果截图', true)
+			myLog += '![logo](' + imgUrl + ')'
 		} else {
-			setLog('图片上传失败~', true);
+			setLog('图片上传失败~', true)
 		}
+	} catch (e) {
+		setLog('图片上传失败~', true)
 	}
 }
 
@@ -404,13 +401,13 @@ function uploadImg() {
  * 2.判断是否早退打卡，迟到打卡
  * */
 function checkPunch() {
-	toastLog('等待10s，确保操作完毕');
-	sleep(10000);
-	toastLog('检查打卡');
+	toastLog('等待10s，确保操作完毕')
+	sleep(10000)
+	toastLog('检查打卡')
 	if (text('继续打卡').clickable(true).exists()) {
-		text('继续打卡').clickable(true).findOne().click();
+		text('继续打卡').clickable(true).findOne().click()
 	} else if (desc('继续打卡').clickable(true).exists()) {
-		desc('继续打卡').clickable(true).findOne().click();
+		desc('继续打卡').clickable(true).findOne().click()
 	}
 	try {
 		if (leaveEarly) {
@@ -418,11 +415,11 @@ function checkPunch() {
 				textContains('早退打卡').exists() ||
 				descContains('早退打卡').exists()
 			) {
-				setLog('早退打卡,执行早退打卡');
+				setLog('早退打卡,执行早退打卡')
 				if (text('早退打卡').clickable(true).exists()) {
-					text('早退打卡').clickable(true).findOne().click();
+					text('早退打卡').clickable(true).findOne().click()
 				} else if (desc('早退打卡').clickable(true).exists()) {
-					desc('早退打卡').clickable(true).findOne().click();
+					desc('早退打卡').clickable(true).findOne().click()
 				}
 			}
 		}
@@ -431,16 +428,16 @@ function checkPunch() {
 				textContains('迟到打卡').exists() ||
 				descContains('迟到打卡').exists()
 			) {
-				setLog('迟到打卡，执行迟到打卡');
+				setLog('迟到打卡，执行迟到打卡')
 				if (text('迟到打卡').clickable(true).exists()) {
-					text('迟到打卡').clickable(true).findOne().click();
+					text('迟到打卡').clickable(true).findOne().click()
 				} else if (desc('迟到打卡').clickable(true).exists()) {
-					desc('迟到打卡').clickable(true).findOne().click();
+					desc('迟到打卡').clickable(true).findOne().click()
 				}
 			}
 		}
 	} catch (error) {
-		setLog('检查打卡出错：' + '\n\n' + error.message);
+		setLog('检查打卡出错：' + '\n\n' + error.message)
 	}
 }
 
@@ -448,84 +445,84 @@ function checkPunch() {
  * 获取打卡结果
  */
 function getReslt() {
-	toastLog('等待10s，确保打卡操作完毕');
-	sleep(10000);
-	toastLog('识别打卡结果');
+	toastLog('等待10s，确保打卡操作完毕')
+	sleep(10000)
+	toastLog('识别打卡结果')
 
 	try {
 		if (
 			textContains('打卡成功').exists() ||
 			descContains('打卡成功').exists()
 		) {
-			setLog('普通识别结果：' + myStr + '成功!');
+			setLog('普通识别结果：' + myStr + '成功!')
 		} else if (
 			textContains('已打卡').exists() ||
 			descContains('已打卡').exists()
 		) {
-			setLog('普通识别结果：' + myStr + '，重复打卡，请查看图片结果！');
+			setLog('普通识别结果：' + myStr + '，重复打卡，请查看图片结果！')
 		} else if (
 			myStr === '上班打卡' &&
 			(textContains('下班打卡').exists() || descContains('下班打卡').exists())
 		) {
 			// 打开App时触发了自动打卡
-			setLog('普通识别结果：' + myStr + '成功!');
+			setLog('普通识别结果：' + myStr + '成功!')
 		} else {
-			setLog('普通识别结果：' + myStr + '失败!，扣你丫工资~');
+			setLog('普通识别结果：' + myStr + '失败!，扣你丫工资~')
 		}
 		if (tokenUrl) {
-			let str = getContentByOcr();
-			setLog('OCR识别内容：' + str);
+			let str = getContentByOcr()
+			setLog('OCR识别内容：' + str)
 			if (str.indexOf('打卡成功') !== -1) {
-				setLog('OCR识别结果：' + myStr + '成功!');
+				setLog('OCR识别结果：' + myStr + '成功!')
 			} else if (str.indexOf('已打卡') !== -1) {
-				setLog('OCR识别结果：' + myStr + '，重复打卡，请查看图片结果！');
+				setLog('OCR识别结果：' + myStr + '，重复打卡，请查看图片结果！')
 			} else {
-				setLog('OCR识别结果：' + myStr + '失败!，扣你丫工资~');
+				setLog('OCR识别结果：' + myStr + '失败!，扣你丫工资~')
 			}
 		}
 		if (sendImgRules != 'notSend') {
-			uploadImg();
+			uploadImg()
 		}
 	} catch (error) {
-		setLog('识别打卡结果出错：' + '\n\n' + error.message);
+		setLog('识别打卡结果出错：' + '\n\n' + error.message)
 	}
-	back();
-	back();
+	back()
+	back()
 }
 
 /**
  * 调用百度文字识别ocr得到当前手机截屏文字
  */
 function getContentByOcr() {
-	let img = captureScreen();
-	access_token = http.get(tokenUrl).body.json().access_token;
+	let img = captureScreen()
+	access_token = http.get(tokenUrl).body.json().access_token
 	let url =
 		'https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic' +
 		'?access_token=' +
-		access_token;
-	let imag64 = images.toBase64(img);
+		access_token
+	let imag64 = images.toBase64(img)
 	let res = http.post(url, {
 		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 		image: imag64,
 		image_type: 'BASE64',
-	});
+	})
 	str = JSON.parse(res.body.string())
 		.words_result.map(val => val.words)
-		.join();
-	return str;
+		.join()
+	return str
 }
 
 /**
  * 打卡
  */
 function punchTheClock() {
-	setLog('当前操作：' + myStr);
-	waitBtnShow();
+	setLog('当前操作：' + myStr)
+	waitBtnShow()
 	if (text(myStr).clickable(true).exists()) {
-		text(myStr).clickable(true).findOne().click();
+		text(myStr).clickable(true).findOne().click()
 	}
 	if (desc(myStr).clickable(true).exists()) {
-		desc(myStr).clickable(true).findOne().click();
+		desc(myStr).clickable(true).findOne().click()
 	}
 }
 
@@ -533,8 +530,8 @@ function punchTheClock() {
  * 等待进入钉钉登录界面或者主界面
  */
 function waitStart() {
-	let sTime = new Date().getTime();
-	let delay = 30000;
+	let sTime = new Date().getTime()
+	let delay = 30000
 
 	while (new Date().getTime() - sTime < delay) {
 		if (
@@ -545,9 +542,9 @@ function waitStart() {
 			text('密码登录').exists() ||
 			desc('密码登录').exists()
 		) {
-			break;
+			break
 		}
-		sleep(1000);
+		sleep(1000)
 	}
 }
 
@@ -555,14 +552,14 @@ function waitStart() {
  * 等待打卡按钮出现
  */
 function waitBtnShow() {
-	let sTime = new Date().getTime();
-	let delay = 60000;
+	let sTime = new Date().getTime()
+	let delay = 60000
 
 	while (new Date().getTime() - sTime < delay) {
 		if (textContains('已进入').exists() || descContains('已进入').exists()) {
-			break;
+			break
 		}
-		sleep(1000);
+		sleep(1000)
 	}
 }
 
@@ -570,18 +567,18 @@ function waitBtnShow() {
  * 获取当前时间，格式:2019/11/26 15:32:27
  */
 function getDateTime(e) {
-	var date = new Date();
-	let year = date.getFullYear();
-	let month = date.getMonth() + 1;
-	let day = date.getDate();
-	let hour = date.getHours();
-	let minute = date.getMinutes();
-	let second = date.getSeconds();
+	var date = new Date()
+	let year = date.getFullYear()
+	let month = date.getMonth() + 1
+	let day = date.getDate()
+	let hour = date.getHours()
+	let minute = date.getMinutes()
+	let second = date.getSeconds()
 	if (month < 10) {
-		month = '0' + month;
+		month = '0' + month
 	}
 	if (day < 10) {
-		day = '0' + month;
+		day = '0' + month
 	}
 	if (e) {
 		return (
@@ -596,9 +593,9 @@ function getDateTime(e) {
 			minute +
 			':' +
 			second
-		);
+		)
 	}
-	return year + '-' + month + '-' + day;
+	return year + '-' + month + '-' + day
 }
 
 /**
@@ -606,13 +603,13 @@ function getDateTime(e) {
  */
 function exitShell() {
 	if (serverUrl && sendImgRules != 'notSend') {
-		sendMsg(getDateTime(true) + ' 打卡结果', myLog);
+		sendMsg(getDateTime(true) + ' 打卡结果', myLog)
 	}
 	if (pushKey) {
-		pushMsg(simpleLog);
+		pushMsg(simpleLog)
 	}
-	home();
-	exit();
+	home()
+	exit()
 }
 
 /**
@@ -621,11 +618,11 @@ function exitShell() {
  * @param {*} msg 内容
  */
 function sendMsg(title, msg) {
-	let url = 'https://' + sendImgRules + '.ftqq.com/' + serverUrl + '.send';
+	let url = 'https://' + sendImgRules + '.ftqq.com/' + serverUrl + '.send'
 	var res = http.post(url, {
 		text: title,
 		desp: msg,
-	});
+	})
 }
 
 /**
@@ -634,11 +631,8 @@ function sendMsg(title, msg) {
  */
 function pushMsg(msg) {
 	let url =
-		'https://api2.pushdeer.com/message/push?pushkey=' +
-		pushKey +
-		'&text=' +
-		msg;
-	http.get(url);
+		'https://api2.pushdeer.com/message/push?pushkey=' + pushKey + '&text=' + msg
+	http.get(url)
 }
 
 /**
@@ -648,48 +642,48 @@ function pushMsg(msg) {
  */
 function setLog(msg, lock) {
 	if (!lock) {
-		simpleLog = msg;
+		simpleLog = msg
 	}
-	log(msg);
-	msg += '\n\n';
-	myLog += msg;
+	log(msg)
+	msg += '\n\n'
+	myLog += msg
 }
 
 /**
  * 根据当前时间返回是上班打卡，还是下班打卡
  */
 function getOptByTime() {
-	let now = new Date();
+	let now = new Date()
 	let yearStr =
-		now.getFullYear() + '/' + (now.getMonth() + 1) + '/' + now.getDate() + ' ';
+		now.getFullYear() + '/' + (now.getMonth() + 1) + '/' + now.getDate() + ' '
 
 	for (i = 0; i < goToWorkTime.length; i++) {
-		let e = goToWorkTime[i];
-		let morStartTime = e.split('-')[0];
-		let morEndTime = e.split('-')[1];
+		let e = goToWorkTime[i]
+		let morStartTime = e.split('-')[0]
+		let morEndTime = e.split('-')[1]
 		//上班打卡时间段->时间类型
-		let morStart = new Date(yearStr + morStartTime);
-		let morEnd = new Date(yearStr + morEndTime);
+		let morStart = new Date(yearStr + morStartTime)
+		let morEnd = new Date(yearStr + morEndTime)
 		//判断当前时间是否可以进行上班打卡
 		if (now > morStart && now < morEnd) {
-			return '上班打卡';
+			return '上班打卡'
 		}
 	}
 
 	for (j = 0; j < afterWorkTime.length; j++) {
-		let e = afterWorkTime[j];
-		let nightStartTime = e.split('-')[0];
-		let nightEndTime = e.split('-')[1];
+		let e = afterWorkTime[j]
+		let nightStartTime = e.split('-')[0]
+		let nightEndTime = e.split('-')[1]
 		//下班打卡时间段->时间类型
-		let nightStart = new Date(yearStr + nightStartTime);
-		let nightEnd = new Date(yearStr + nightEndTime);
+		let nightStart = new Date(yearStr + nightStartTime)
+		let nightEnd = new Date(yearStr + nightEndTime)
 		//判断当前时间是否可以进行下班打卡
 		if (now > nightStart && now < nightEnd) {
-			return '下班打卡';
+			return '下班打卡'
 		}
 	}
 
-	return -1;
+	return -1
 }
 
 /**
@@ -697,25 +691,25 @@ function getOptByTime() {
  */
 function handleOrgDialog() {
 	if ('' == companyName || null == companyName) {
-		return;
+		return
 	}
-	let delay = 30000;
-	const flagStr = '请选择你要进入的考勤组织';
-	let sTime = new Date().getTime();
+	let delay = 30000
+	const flagStr = '请选择你要进入的考勤组织'
+	let sTime = new Date().getTime()
 	while (new Date().getTime() - sTime < delay) {
 		if (text(flagStr).exists() || desc(flagStr).exists()) {
 			if (textContains(companyName).clickable(true).exists()) {
-				textContains(companyName).findOne().click();
-				setLog('选择公司：' + companyName);
-				return;
+				textContains(companyName).findOne().click()
+				setLog('选择公司：' + companyName)
+				return
 			}
 			if (descContains(companyName).clickable(true).exists()) {
-				descContains(companyName).findOne().click();
-				setLog('选择公司：' + companyName);
-				return;
+				descContains(companyName).findOne().click()
+				setLog('选择公司：' + companyName)
+				return
 			}
 		} else {
-			sleep(1000);
+			sleep(1000)
 		}
 	}
 }
@@ -724,18 +718,18 @@ function handleOrgDialog() {
  * 打开打卡页面
  */
 function goToPage() {
-	toastLog('打开钉钉中...');
-	launch('com.alibaba.android.rimet');
-	waitStart();
-	log('启动完成');
-	loginIfNeed();
-	sleep(waitTime * 1000);
-	setLog('进入打卡页面');
+	toastLog('打开钉钉中...')
+	launch('com.alibaba.android.rimet')
+	waitStart()
+	log('启动完成')
+	loginIfNeed()
+	sleep(waitTime * 1000)
+	setLog('进入打卡页面')
 	var a = app.intent({
 		action: 'VIEW',
 		data: 'dingtalk://dingtalkclient/page/link?url=https://attend.dingtalk.com/attend/index.html',
-	});
-	app.startActivity(a);
+	})
+	app.startActivity(a)
 }
 
 /**
@@ -743,44 +737,44 @@ function goToPage() {
  */
 function checkMyPermission() {
 	// 1.检查当前是否是打卡时间段
-	myStr = getOptByTime();
+	myStr = getOptByTime()
 	if (-1 === myStr) {
-		setLog('当前时间不在设置的考勤范围内!!!');
-		exitShell();
+		setLog('当前时间不在设置的考勤范围内!!!')
+		exitShell()
 	}
 
 	// 2.根据配置跳过节假日或周末
 	if ('rule_1' == jumpRules) {
-		let holidayArray = myCfg.get(holidayCfgName);
+		let holidayArray = myCfg.get(holidayCfgName)
 		if (holidayArray.indexOf(getDateTime(false)) != -1) {
-			setLog('今天是节假日, 不会打卡哦~');
-			exitShell();
+			setLog('今天是节假日, 不会打卡哦~')
+			exitShell()
 		}
 	} else if ('rule_2' == jumpRules) {
-		let week = new Date().getDay();
+		let week = new Date().getDay()
 		if (week == 6 || week == 0) {
-			setLog('今天是周末, 不会打卡哦~');
-			exitShell();
+			setLog('今天是周末, 不会打卡哦~')
+			exitShell()
 		}
 	} else if ('rule_3' == jumpRules) {
-		let week = new Date().getDay();
-		let holidayArray = myCfg.get(holidayCfgName);
+		let week = new Date().getDay()
+		let holidayArray = myCfg.get(holidayCfgName)
 		if (
 			holidayArray.indexOf(getDateTime(false)) != -1 ||
 			week == 6 ||
 			week == 0
 		) {
-			setLog('今天是节假日, 不会打卡哦~');
-			exitShell();
+			setLog('今天是节假日, 不会打卡哦~')
+			exitShell()
 		}
 	}
 
 	// 3.检查无障碍权限
 	if (auto.service == null) {
-		setLog('请打开无障碍服务,脚本退出！！！');
-		sleep(3000);
-		app.startActivity({ action: 'android.settings.ACCESSIBILITY_SETTINGS' });
-		exitShell();
+		setLog('请打开无障碍服务,脚本退出！！！')
+		sleep(3000)
+		app.startActivity({ action: 'android.settings.ACCESSIBILITY_SETTINGS' })
+		exitShell()
 	}
 
 	// 4.请求截图权限
@@ -789,20 +783,20 @@ function checkMyPermission() {
 		threads.start(function () {
 			let timer = setInterval(function () {
 				if (text('立即开始').clickable(true).exists()) {
-					text('立即开始').clickable(true).findOne().click();
-					clearInterval(timer);
+					text('立即开始').clickable(true).findOne().click()
+					clearInterval(timer)
 				} else if (desc('立即开始').clickable(true).exists()) {
-					desc('立即开始').clickable(true).findOne().click();
-					clearInterval(timer);
+					desc('立即开始').clickable(true).findOne().click()
+					clearInterval(timer)
 				}
-			}, 500);
-		});
+			}, 500)
+		})
 
 		if (!requestScreenCapture()) {
-			setLog('申请截图权限失败');
-			exitShell();
+			setLog('申请截图权限失败')
+			exitShell()
 		}
 	}
 
-	toastLog('权限检查完毕');
+	toastLog('权限检查完毕')
 }
